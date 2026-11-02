@@ -24,7 +24,7 @@ Um participante pode ter inscrições em eventos diferentes; a unicidade do e-ma
 - `status`: `confirmada`, `lista_espera` ou `cancelada`.
 - `criada_em`: data/hora de criação para auditoria.
 
-A ocupação e o tamanho da fila são calculados a partir das inscrições ativas; não são armazenados como contadores que possam divergir. Um evento está `Esgotado` quando o total de inscrições confirmadas atinge a capacidade. Inscrições canceladas não ocupam vaga. A consulta pelo ID da inscrição retorna também o nome e o e-mail associados.
+A ocupação e o tamanho da fila são calculados a partir das inscrições ativas; não são armazenados como contadores que possam divergir. Vagas disponíveis são `max(capacidade - vagas ocupadas, 0)`. Um evento está `Esgotado` quando o total de inscrições confirmadas atinge a capacidade. Inscrições canceladas não ocupam vaga. A consulta pelo ID da inscrição retorna evento e status, sem revelar nome ou e-mail.
 
 ## Regras e concorrência
 

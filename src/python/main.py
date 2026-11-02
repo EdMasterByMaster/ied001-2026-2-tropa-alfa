@@ -41,7 +41,8 @@ def _date(value: str) -> date:
 def _show_event(event) -> None:
     print(
         f"Evento #{event.id_evento}: {event.nome} | {event.data.isoformat()} | {event.local} | "
-        f"{event.status} | vagas: {event.vagas_ocupadas}/{event.capacidade} | fila: {event.tamanho_fila}"
+        f"{event.status} | ocupadas: {event.vagas_ocupadas}/{event.capacidade} | "
+        f"disponíveis: {event.vagas_disponiveis} | fila: {event.tamanho_fila}"
     )
 
 
@@ -109,8 +110,7 @@ def main() -> int:
         elif args.command == "inscricao":
             registration = service.get_registration(args.inscricao_id)
             print(
-                f"Inscrição #{registration.id_inscricao} | evento #{registration.id_evento} | "
-                f"{registration.nome_participante} ({registration.email_participante}) | {registration.status}"
+                f"Inscrição #{registration.id_inscricao} | evento #{registration.id_evento} | {registration.status}"
             )
         elif args.command == "cancelar":
             result = service.cancel_registration(args.inscricao_id)

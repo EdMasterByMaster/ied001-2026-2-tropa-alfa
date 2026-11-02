@@ -186,10 +186,8 @@ class MySQLRepository:
             cursor = connection.cursor(dictionary=True)
             try:
                 cursor.execute(
-                    "SELECT i.id_inscricao, i.id_evento, i.status, i.criada_em, "
-                    "p.nome AS nome_participante, p.email AS email_participante "
-                    "FROM inscricoes i JOIN participantes p ON p.id_participante = i.id_participante "
-                    "WHERE i.id_inscricao = %s",
+                    "SELECT id_inscricao, id_evento, status, criada_em "
+                    "FROM inscricoes WHERE id_inscricao = %s",
                     (registration_id,),
                 )
                 row = cursor.fetchone()
@@ -206,10 +204,8 @@ class MySQLRepository:
             event_id = initial["id_evento"]
             cursor.execute("SELECT id_evento FROM eventos WHERE id_evento = %s FOR UPDATE", (event_id,))
             cursor.execute(
-                "SELECT i.id_inscricao, i.id_evento, i.status, i.criada_em, "
-                "p.nome AS nome_participante, p.email AS email_participante "
-                "FROM inscricoes i JOIN participantes p ON p.id_participante = i.id_participante "
-                "WHERE i.id_inscricao = %s FOR UPDATE",
+                "SELECT id_inscricao, id_evento, status, criada_em "
+                "FROM inscricoes WHERE id_inscricao = %s FOR UPDATE",
                 (registration_id,),
             )
             row = cursor.fetchone()
@@ -219,19 +215,15 @@ class MySQLRepository:
                 row["id_inscricao"],
                 row["id_evento"],
                 "cancelada",
-                row["nome_participante"],
-                row["email_participante"],
                 row.get("criada_em"),
             )
             cursor.execute("UPDATE inscricoes SET status = 'cancelada' WHERE id_inscricao = %s", (registration_id,))
             promoted = None
             if row["status"] == "confirmada":
                 cursor.execute(
-                    "SELECT i.id_inscricao, i.id_evento, i.status, i.criada_em, "
-                    "p.nome AS nome_participante, p.email AS email_participante "
-                    "FROM inscricoes i JOIN participantes p ON p.id_participante = i.id_participante "
-                    "WHERE i.id_evento = %s AND i.status = 'lista_espera' "
-                    "ORDER BY i.id_inscricao ASC LIMIT 1 FOR UPDATE",
+                    "SELECT id_inscricao, id_evento, status, criada_em "
+                    "FROM inscricoes WHERE id_evento = %s AND status = 'lista_espera' "
+                    "ORDER BY id_inscricao ASC LIMIT 1 FOR UPDATE",
                     (event_id,),
                 )
                 waiting = cursor.fetchone()
@@ -244,8 +236,6 @@ class MySQLRepository:
                         waiting["id_inscricao"],
                         waiting["id_evento"],
                         "confirmada",
-                        waiting["nome_participante"],
-                        waiting["email_participante"],
                         waiting.get("criada_em"),
                     )
             return CancellationResult(cancelled, promoted)

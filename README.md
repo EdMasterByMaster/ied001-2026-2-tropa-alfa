@@ -46,7 +46,7 @@ python src/python/main.py resumo 1
 python src/python/main.py cancelar 1
 ```
 
-Cada inscrição exige nome e e-mail do participante e devolve um ID numérico. Participantes são associados pelo e-mail e podem se inscrever em vários eventos. Quando não houver vaga, a inscrição recebe o status `lista_espera`; ao cancelar uma inscrição confirmada, a primeira inscrição pendente (menor ID no mesmo evento) é confirmada na mesma transação. A consulta pelo ID mostra os dados do participante e o status.
+Cada inscrição exige nome e e-mail do participante e devolve um ID numérico. Participantes são associados pelo e-mail e podem se inscrever em vários eventos. Quando não houver vaga, a inscrição recebe o status `lista_espera`; ao cancelar uma inscrição confirmada, a primeira inscrição pendente (menor ID no mesmo evento) é confirmada na mesma transação. A consulta pelo ID mostra somente o evento e o status, evitando expor os dados pessoais do participante.
 
 ## Testes
 
@@ -76,4 +76,4 @@ Cada integrante pode assumir uma issue, ler o teste correspondente em `tests/pyt
 
 ## Limites do MVP
 
-Não há pagamento. Nome e e-mail são armazenados para identificar o participante associado à inscrição; cada inscrição também gera um identificador consultável. As conexões e transações MySQL serializam operações por evento para não exceder a capacidade nem alterar a ordem da fila.
+Não há pagamento. Nome e e-mail são armazenados para identificar o participante associado à inscrição; cada inscrição também gera um identificador consultável. A busca pelo ID não retorna nome ou e-mail. As conexões e transações MySQL serializam operações por evento para não exceder a capacidade nem alterar a ordem da fila.

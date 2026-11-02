@@ -17,14 +17,18 @@ class Event:
     def status(self) -> str:
         return "Esgotado" if self.vagas_ocupadas >= self.capacidade else "Disponível"
 
+    @property
+    def vagas_disponiveis(self) -> int:
+        return max(self.capacidade - self.vagas_ocupadas, 0)
+
 
 @dataclass(frozen=True)
 class Registration:
     id_inscricao: int
     id_evento: int
     status: str
-    nome_participante: str
-    email_participante: str
+    nome_participante: Optional[str] = None
+    email_participante: Optional[str] = None
     criada_em: Optional[datetime] = None
 
 

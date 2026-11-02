@@ -1,10 +1,14 @@
+import io
 import sys
 import unittest
+from contextlib import redirect_stdout
 from datetime import date
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src" / "python"))
 
+import main as cli
 from eventos.errors import DomainError, EventNotFound, RegistrationNotCancelable, RegistrationNotFound
 from eventos.models import CancellationResult, Event, Registration
 from eventos.service import EventService
@@ -73,10 +77,13 @@ class MemoryRepository:
         return registration
 
     def get_registration(self, registration_id):
-        return self.registrations.get(registration_id)
+        registration = self.registrations.get(registration_id)
+        if registration is None:
+            return None
+        return Registration(registration.id_inscricao, registration.id_evento, registration.status)
 
     def cancel_registration(self, registration_id):
-        registration = self.get_registration(registration_id)
+        registration = self.registrations.get(registration_id)
         if registration is None:
             raise RegistrationNotFound(registration_id)
         if registration.status == "cancelada":
@@ -85,8 +92,6 @@ class MemoryRepository:
             registration.id_inscricao,
             registration.id_evento,
             "cancelada",
-            registration.nome_participante,
-            registration.email_participante,
         )
         self.registrations[registration_id] = cancelled
         promoted = None
@@ -105,8 +110,6 @@ class MemoryRepository:
                     next_item.id_inscricao,
                     next_item.id_evento,
                     "confirmada",
-                    next_item.nome_participante,
-                    next_item.email_participante,
                 )
                 self.registrations[next_item.id_inscricao] = promoted
         return CancellationResult(cancelled, promoted)
@@ -181,10 +184,13 @@ class EventServiceTests(unittest.TestCase):
         waiting = self.service.register(event.id_evento, "Bruno", "bruno@example.com")
 
         self.assertEqual(self.service.get_registration(waiting.id_inscricao).status, "lista_espera")
-        self.assertEqual(self.service.get_registration(waiting.id_inscricao).nome_participante, "Bruno")
+        lookup = self.service.get_registration(waiting.id_inscricao)
+        self.assertIsNone(lookup.nome_participante)
+        self.assertIsNone(lookup.email_participante)
         summary = self.service.get_summary(event.id_evento)
         self.assertEqual(summary.status, "Esgotado")
         self.assertEqual(summary.vagas_ocupadas, 1)
+        self.assertEqual(summary.vagas_disponiveis, 0)
         self.assertEqual(summary.tamanho_fila, 1)
         with self.assertRaises(RegistrationNotFound):
             self.service.get_registration(999)
@@ -198,14 +204,44 @@ class EventServiceTests(unittest.TestCase):
         first_result = self.service.cancel_registration(confirmed.id_inscricao)
         self.assertEqual(first_result.cancelada.status, "cancelada")
         self.assertEqual(first_result.promovida.id_inscricao, first_waiting.id_inscricao)
-        self.assertEqual(first_result.promovida.nome_participante, "Bruno")
+        self.assertIsNone(first_result.promovida.nome_participante)
 
         second_result = self.service.cancel_registration(first_waiting.id_inscricao)
         self.assertEqual(second_result.promovida.id_inscricao, second_waiting.id_inscricao)
         self.assertEqual(self.service.get_registration(second_waiting.id_inscricao).status, "confirmada")
         summary = self.service.get_summary(event.id_evento)
         self.assertEqual(summary.vagas_ocupadas, 1)
+        self.assertEqual(summary.vagas_disponiveis, 0)
         self.assertEqual(summary.tamanho_fila, 0)
+
+    def test_summary_never_reports_negative_available_seats(self):
+        event = Event(1, "Show", date(2026, 12, 1), "Arena", 1, vagas_ocupadas=2)
+
+        self.assertEqual(event.vagas_disponiveis, 0)
+
+    def test_event_display_includes_available_seats(self):
+        event = self.service.create_event("Show", date(2026, 12, 1), "Arena", 3)
+        output = io.StringIO()
+
+        with redirect_stdout(output):
+            cli._show_event(event)
+
+        self.assertIn("disponíveis: 3", output.getvalue())
+
+    def test_registration_lookup_does_not_expose_participant_personal_data(self):
+        event = self.service.create_event("Show", date(2026, 12, 1), "Arena", 1)
+        registration = self.service.register(event.id_evento, "Ana Silva", "ana@example.com")
+        output = io.StringIO()
+
+        with patch.object(cli, "_service", return_value=self.service), patch.object(
+            sys, "argv", ["main.py", "inscricao", str(registration.id_inscricao)]
+        ), redirect_stdout(output):
+            cli.main()
+
+        self.assertIn(f"Inscrição #{registration.id_inscricao}", output.getvalue())
+        self.assertIn("confirmada", output.getvalue())
+        self.assertNotIn("Ana Silva", output.getvalue())
+        self.assertNotIn("ana@example.com", output.getvalue())
 
     def test_unknown_event_and_repeated_cancelation_are_rejected(self):
         with self.assertRaises(EventNotFound):
