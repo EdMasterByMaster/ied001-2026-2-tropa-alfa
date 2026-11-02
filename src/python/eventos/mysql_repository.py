@@ -71,8 +71,8 @@ class MySQLRepository:
             id_inscricao=row["id_inscricao"],
             id_evento=row["id_evento"],
             status=row["status"],
-            nome_participante=row["nome_participante"],
-            email_participante=row["email_participante"],
+            nome_participante=row.get("nome_participante"),
+            email_participante=row.get("email_participante"),
             criada_em=row.get("criada_em"),
         )
 
@@ -209,6 +209,7 @@ class MySQLRepository:
                 raise RegistrationNotFound(registration_id)
             event_id = initial["id_evento"]
             cursor.execute("SELECT id_evento FROM eventos WHERE id_evento = %s FOR UPDATE", (event_id,))
+            cursor.fetchone()
             cursor.execute(
                 "SELECT id_inscricao, id_evento, status, criada_em "
                 "FROM inscricoes WHERE id_inscricao = %s FOR UPDATE",
