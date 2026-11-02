@@ -30,6 +30,12 @@ class MySQLRepository:
         connection = self._connect()
         try:
             yield connection
+        except Exception as exc:
+            import mysql.connector
+
+            if isinstance(exc, mysql.connector.Error):
+                raise DatabaseError(f"Falha ao executar operação no MySQL: {exc}") from exc
+            raise
         finally:
             connection.close()
 
