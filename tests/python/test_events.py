@@ -9,6 +9,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src" / "python"))
 
 import main as cli
+from webapp import create_app
 from eventos.errors import DomainError, EventNotFound, RegistrationNotCancelable, RegistrationNotFound
 from eventos.models import CancellationResult, Event, Registration
 from eventos.service import EventService
@@ -119,6 +120,76 @@ class EventServiceTests(unittest.TestCase):
     def setUp(self):
         self.repository = MemoryRepository()
         self.service = EventService(self.repository)
+        self.client = create_app(self.service).test_client()
+
+    def test_web_frontend_and_api_support_event_registration_and_lookup(self):
+        response = self.client.post(
+            "/api/events",
+            json={
+                "name": "Festival Web",
+                "date": "2026-12-10",
+                "location": "Centro Cultural",
+                "capacity": 1,
+            },
+        )
+        self.assertEqual(response.status_code, 201)
+        event = response.get_json()
+        self.assertEqual(event["available"], 1)
+
+        first = self.client.post(
+            f"/api/events/{event['id']}/registrations",
+            json={"name": "Ana Silva", "email": "ana@example.com"},
+        )
+        waiting = self.client.post(
+            f"/api/events/{event['id']}/registrations",
+            json={"name": "Bruno Lima", "email": "bruno@example.com"},
+        )
+        self.assertEqual(first.get_json()["status"], "confirmada")
+        self.assertEqual(waiting.get_json()["status"], "lista_espera")
+
+        lookup = self.client.get(f"/api/registrations/{waiting.get_json()['id']}")
+        self.assertEqual(lookup.status_code, 200)
+        self.assertEqual(lookup.get_json()["status"], "lista_espera")
+        self.assertNotIn("email", lookup.get_json())
+        self.assertNotIn("name", lookup.get_json())
+
+        cancelled = self.client.delete(f"/api/registrations/{first.get_json()['id']}")
+        self.assertEqual(cancelled.status_code, 200)
+        self.assertEqual(cancelled.get_json()["promoted_id"], waiting.get_json()["id"])
+        promoted = self.client.get(f"/api/registrations/{waiting.get_json()['id']}")
+        self.assertEqual(promoted.get_json()["status"], "confirmada")
+
+        listing = self.client.get("/api/events?name=Festival&date=2026-12-10&location=Cultural")
+        self.assertEqual(listing.status_code, 200)
+        self.assertEqual(listing.get_json()[0]["waiting"], 0)
+
+    def test_frontend_serves_page_and_stylesheet(self):
+        page = self.client.get("/")
+        stylesheet = self.client.get("/assets/styles.css")
+        script = self.client.get("/assets/app.js")
+        try:
+            self.assertIn(b"Momentos que", page.data)
+            self.assertEqual(stylesheet.status_code, 200)
+            self.assertEqual(script.status_code, 200)
+        finally:
+            page.close()
+            stylesheet.close()
+            script.close()
+
+    def test_web_api_rejects_invalid_input_and_reports_missing_records(self):
+        invalid_date = self.client.post(
+            "/api/events",
+            json={"name": "Festival", "date": "not-a-date", "location": "Local", "capacity": 2},
+        )
+        invalid_name = self.client.post(
+            "/api/events",
+            json={"name": "", "date": "2026-12-10", "location": "Local", "capacity": 2},
+        )
+        missing_registration = self.client.get("/api/registrations/999")
+
+        self.assertEqual(invalid_date.status_code, 400)
+        self.assertEqual(invalid_name.status_code, 400)
+        self.assertEqual(missing_registration.status_code, 404)
 
     def test_create_event_and_validate_required_fields(self):
         event = self.service.create_event(" Feira de Ciências ", date(2026, 12, 1), " Auditório ", 2)

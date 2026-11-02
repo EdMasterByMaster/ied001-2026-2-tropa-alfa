@@ -34,7 +34,7 @@ python src/python/main.py init-db
 
 ## Uso
 
-Os comandos abaixo são executados na raiz do repositório:
+Os comandos abaixo são executados na raiz do repositório para usar a CLI:
 
 ```powershell
 python src/python/main.py cadastrar-evento "Feira de Ciências" 2026-12-01 "Auditório Central" 100
@@ -48,6 +48,16 @@ python src/python/main.py cancelar 1
 
 Cada inscrição exige nome e e-mail do participante e devolve um ID numérico. Participantes são associados pelo e-mail e podem se inscrever em vários eventos. Quando não houver vaga, a inscrição recebe o status `lista_espera`; ao cancelar uma inscrição confirmada, a primeira inscrição pendente (menor ID no mesmo evento) é confirmada na mesma transação. A consulta pelo ID mostra somente o evento e o status, evitando expor os dados pessoais do participante.
 
+## Interface web
+
+Com o MySQL iniciado, `.env` configurado e dependências instaladas, abra um terminal na raiz do projeto e inicie a aplicação web:
+
+```powershell
+python src/python/webapp.py
+```
+
+Abra `http://127.0.0.1:5000` no navegador. A interface permite publicar e filtrar eventos, inscrever participantes, entrar na espera quando esgotado, consultar o ingresso pelo ID e cancelar com promoção imediata da fila. Para parar o servidor, volte ao terminal e pressione `Ctrl+C`. O servidor de desenvolvimento é local e destinado à apresentação/testes, não à hospedagem pública.
+
 ## Testes
 
 Os testes unitários exercitam as histórias sem precisar de MySQL:
@@ -55,6 +65,8 @@ Os testes unitários exercitam as histórias sem precisar de MySQL:
 ```powershell
 python -m unittest discover -s tests/python -v
 ```
+
+Os testes da API e dos arquivos servidos pela interface usam o cliente de testes do Flask, sem conexão real com o banco.
 
 Para validar a integração ponta a ponta, configure um banco de teste em `.env`, execute `init-db` e siga os comandos de uso. Os comandos persistem dados; use IDs e eventos de teste.
 
@@ -64,6 +76,7 @@ As issues existentes são os cards de trabalho. O código abaixo já pode ser us
 
 | História | Issue | Código de referência |
 |---|---|---|
+| Interface web | [#9](https://github.com/EdMasterByMaster/ied001-2026-2-tropa-alfa/issues/9) | `src/python/web/index.html`, `src/python/web/assets/`, `src/python/webapp.py` |
 | US-01 — cadastrar evento | [#1](https://github.com/EdMasterByMaster/ied001-2026-2-tropa-alfa/issues/1) | `EventService.create_event`, `MySQLRepository.create_event`, `schema.sql` |
 | US-02 — inscrição de participante e ID | [#2](https://github.com/EdMasterByMaster/ied001-2026-2-tropa-alfa/issues/2) | `EventService.register`, `MySQLRepository.register`, tabelas `participantes` e `inscricoes` |
 | US-03 — catálogo e busca | [#3](https://github.com/EdMasterByMaster/ied001-2026-2-tropa-alfa/issues/3) | `EventService.list_events`, `MySQLRepository.list_events` |

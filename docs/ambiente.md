@@ -3,6 +3,7 @@
 - Windows (PowerShell/VS Code)
 - Python 3.10 ou superior
 - MySQL 8.0.16 ou superior
+- Navegador web moderno para a interface
 
 Na raiz do repositório, instale as dependências e crie a configuração local:
 
@@ -20,6 +21,8 @@ python src/python/main.py init-db
 ```
 
 O `.env` contém credenciais locais, está no `.gitignore` e nunca deve ser commitado. Consulte o `README.md` para SQL de criação do usuário, comandos do MVP e instruções de teste.
+
+Inicie a interface web com `python src/python/webapp.py` e acesse `http://127.0.0.1:5000`. O servidor fica restrito à máquina local para demonstração e testes.
 
 Os testes unitários não precisam de um servidor MySQL:
 
