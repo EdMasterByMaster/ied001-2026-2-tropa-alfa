@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11100f">
+  <meta name="description" content="Organize eventos e inscrições em um só lugar.">
+  <title>Ingresso | Eventos e inscrições</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script src="/assets/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Ingresso, página inicial">
+      <span class="brand-mark" aria-hidden="true">I</span>
+      <span>ingresso<span class="brand-dot">.</span></span>
+    </a>
+    <nav class="topnav" aria-label="Navegação principal">
+      <a href="#eventos">Explorar</a>
+      <a href="#ingresso">Meu ingresso</a>
+    </nav>
+    <button class="button button-outline button-small" id="open-create">+ Criar evento</button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="live-dot"></span> SEU PRÓXIMO ENCONTRO COMEÇA AQUI</p>
+        <h1>Momentos que<br><span>valem o encontro.</span></h1>
+        <p class="hero-description">Descubra eventos, garanta seu lugar e faça parte do que está acontecendo.</p>
+        <a class="button button-primary hero-cta" href="#eventos">Explorar eventos <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="orbit orbit-one"></div>
+        <div class="orbit orbit-two"></div>
+        <div class="art-ticket">
+          <div class="ticket-top"><span class="ticket-brand">INGRESSO / 2026</span><span class="ticket-star">✳</span></div>
+          <div class="ticket-graphic"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="ticket-bottom"><div><small>UMA NOITE PARA LEMBRAR</small><strong>O encontro<br>é seu.</strong></div><b>01—26</b></div>
+        </div>
+        <span class="art-caption">CULTURA · IDEIAS · CONEXÕES</span>
+      </div>
+      <div class="hero-foot"><span>01 / 07 — SUA AGENDA COMEÇA AQUI</span><span>FEITO PARA ESTAR JUNTO <span class="foot-arrow">↓</span></span></div>
+    </section>
+
+    <section class="events-section section-wrap" id="eventos">
+      <div class="section-heading">
+        <div><p class="eyebrow eyebrow-muted">ESCOLHA SEU PRÓXIMO CAPÍTULO</p><h2>Eventos em destaque<span class="brand-dot">.</span></h2></div>
+        <span class="section-index">CATÁLOGO / <span id="event-count">00</span></span>
+      </div>
+      <form class="filters" id="search-form">
+        <label class="search-input"><span aria-hidden="true">⌕</span><input name="name" placeholder="Buscar por nome" aria-label="Buscar por nome"></label>
+        <label class="filter-input"><span>DATA</span><input type="date" name="date" aria-label="Filtrar por data"></label>
+        <label class="filter-input"><span>LOCAL</span><input name="location" placeholder="Qualquer local" aria-label="Filtrar por local"></label>
+        <button class="button button-dark" type="submit">Buscar <span aria-hidden="true">→</span></button>
+      </form>
+      <div class="notice" id="notice" role="status" aria-live="polite" hidden></div>
+      <div class="event-grid" id="event-grid" aria-live="polite"></div>
+    </section>
+
+    <section class="ticket-section" id="ingresso">
+      <div class="ticket-section-inner section-wrap">
+        <div class="ticket-copy"><p class="eyebrow">JÁ TEM SEU LUGAR?</p><h2>Seu ingresso,<br>sempre à mão.</h2><p>Consulte o status da sua inscrição com o número de confirmação. Rápido e sem complicação.</p></div>
+        <form class="lookup-card" id="lookup-form">
+          <label for="ticket-id">NÚMERO DO INGRESSO</label>
+          <div class="lookup-row"><input id="ticket-id" name="id" type="number" min="1" placeholder="Ex.: 1042" required><button class="button button-primary" type="submit">Consultar <span aria-hidden="true">→</span></button></div>
+          <div class="lookup-result" id="lookup-result" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+      <div class="ticket-decoration" aria-hidden="true">SEU PRÓXIMO CAPÍTULO / SEU PRÓXIMO CAPÍTULO /</div>
+    </section>
+
+    <section class="host-section section-wrap">
+      <div class="host-badge" aria-hidden="true">↗</div>
+      <div><p class="eyebrow eyebrow-muted">VOCÊ FAZ ACONTECER</p><h2>Tem algo para reunir<br>as pessoas?</h2></div>
+      <button class="button button-outline" id="open-create-bottom">Publique seu evento <span aria-hidden="true">↗</span></button>
+    </section>
+  </main>
+
+  <footer class="footer"><a class="brand footer-brand" href="/"><span class="brand-mark">I</span><span>ingresso<span class="brand-dot">.</span></span></a><span>ENCONTROS QUE FICAM.</span><span>© 2026 · MVP EVENTOS</span></footer>
+
+  <dialog class="modal" id="register-dialog">
+    <form class="modal-content" id="register-form">
+      <button class="modal-close" type="button" data-close aria-label="Fechar">×</button>
+      <p class="eyebrow eyebrow-muted">GARANTA SEU LUGAR</p><h2 id="register-title">Inscrição</h2>
+      <p class="modal-event" id="register-event"></p>
+      <input type="hidden" name="event_id">
+      <label>Seu nome<input name="name" autocomplete="name" maxlength="150" required placeholder="Nome completo"></label>
+      <label>Seu e-mail<input name="email" type="email" autocomplete="email" maxlength="254" required placeholder="voce@email.com"></label>
+      <div class="form-message" id="register-message" role="status" aria-live="polite"></div>
+      <button class="button button-primary button-wide" type="submit">Confirmar inscrição <span aria-hidden="true">→</span></button>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="create-dialog">
+    <form class="modal-content" id="create-form">
+      <button class="modal-close" type="button" data-close aria-label="Fechar">×</button>
+      <p class="eyebrow eyebrow-muted">TIRE SUA IDEIA DO PAPEL</p><h2>Criar evento</h2>
+      <label>Nome do evento<input name="name" maxlength="150" required placeholder="Ex.: Festival de ideias"></label>
+      <label>Data<input name="date" type="date" required></label>
+      <label>Local<input name="location" maxlength="200" required placeholder="Ex.: Centro cultural"></label>
+      <label>Capacidade<input name="capacity" type="number" min="1" step="1" required placeholder="Ex.: 120"></label>
+      <div class="form-message" id="create-message" role="status" aria-live="polite"></div>
+      <button class="button button-primary button-wide" type="submit">Publicar evento <span aria-hidden="true">→</span></button>
+    </form>
+  </dialog>
+</body>
+</html>
